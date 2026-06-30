@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4 mb-5">
+    <!-- Profile & Status Column -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4 shadow-sm animate-fade-in h-100">
+            <div class="text-center mb-4">
+                {% if current_user.profile_photo %}
+                <img src="{{ url_for('auth.serve_profile_photo', filename=current_user.profile_photo) }}" 
+                     alt="Profile" class="rounded-circle shadow-sm mb-3" 
+                     style="width: 80px; height: 80px; object-fit: cover; border: 3px solid var(--primary-light);">
+                {% else %}
+                <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center text-white fw-bold mb-3 shadow-sm" 
+                     style="width: 80px; height: 80px; font-size: 1.8rem; border: 3px solid var(--primary-light);">
+                    {{ current_user.username[:2]|upper }}
+                </div>
+                {% endif %}
+                <h4 class="fw-800 mb-0">{{ current_user.username }}</h4>
+                <p class="text-muted small mb-2">Reg No: {{ current_user.registration_number }}</p>
+                
+                <div class="d-flex flex-wrap justify-content-center gap-1">
+                    {% if activity and activity[0].commits > 10 %}
+                    <span class="badge bg-warning text-dark border-0 shadow-sm" title="Sprint Master: More than 10 commits">🏆 Sprint Master</span>
+                    {% endif %}
+                    {% if evaluation and evaluation.risk_level == 'ON_TRACK' %}
+                    <span class="badge bg-success text-white border-0 shadow-sm" title="On Track: Maintaining good progress">🎯 On Track</span>
+                    {% endif %}
+                    {% if evaluation and evaluation.contribution_score > 80 %}
+                    <span class="badge bg-info text-white border-0 shadow-sm" title="Star Contributor: High contribution score">⭐ Star Contributor</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="border-white opacity-20">
+
+            <div class="mt-4">
+                <h6 class="text-muted small fw-bold mb-3 text-uppercase">Project Context</h6>
+                {% if project %}
+                <div class="p-3 bg-light rounded-4 border border-white mb-3 shadow-sm">
+                    <p class="mb-1 small fw-bold text-dark">{{ project.title }}</p>
+                    <span class="badge bg-primary-light text-primary rounded-pill px-3">{{ project.status }}</span>
+                    <div class="d-flex flex-column gap-2 mt-3">
+                        <a href="{{ url_for('kanban.board', project_id=project.id) }}"
+                            class="btn btn-sm btn-primary rounded-pill w-100 py-2 fw-bold"
+                            style="font-size: 11px;">
+                            <i data-lucide="layout" class="me-1" style="width: 12px;"></i> KANBAN BOARD
+                        </a>
+                        <a href="{{ url_for('project.peer_evaluation', project_id=project.id) }}"
+                            class="btn btn-sm btn-info text-white rounded-pill w-100 py-2 fw-bold shadow-sm"
+                            style="font-size: 11px;">
+                            <i data-lucide="users" class="me-1" style="width: 12px;"></i> PEER EVALUATION
+                        </a>
+                        <a href="{{ url_for('project.view_report', project_id=project.id) }}"
+                            class="btn btn-sm btn-outline-primary rounded-pill w-100 py-2 fw-bold"
+                            style="font-size: 11px;">
+                            <i data-lucide="file-bar-chart" class="me-1" style="width: 12px;"></i> insights report
+                        </a>
+                        <a href="{{ url_for('project.manage_team') }}"
+                            class="btn btn-sm btn-outline-secondary rounded-pill w-100 py-2 fw-bold mt-1"
+                            style="font-size: 11px; border-style: dashed;">
+                            <i data-lucide="settings" class="me-1" style="width: 12px;"></i> MANAGE TEAM
+                        </a>
+                        <a href="{{ url_for('project.submit_proposal') }}"
+                            class="btn btn-sm btn-warning text-dark rounded-pill w-100 py-2 fw-bold mt-1 shadow-sm"
+                            style="font-size: 11px;">
+                            <i data-lucide="edit-3" class="me-1" style="width: 12px;"></i> EDIT PROJECT & MAPPING
+                        </a>
+                    </div>
+                </div>
+                {% elif current_user.team_id %}
+                <div class="text-center py-4 bg-light rounded-4 border border-dashed">
+                    <p class="small text-muted mb-3">Team Created. Awaiting Proposal.</p>
+                    <a href="{{ url_for('project.submit_proposal') }}" class="btn btn-sm btn-primary rounded-pill px-4">Submit Proposal</a>
+                </div>
+                {% else %}
+                <div class="text-center py-4 bg-light rounded-4 border border-dashed">
+                    <p class="small text-muted mb-3">No active project team</p>
+                    <a href="{{ url_for('project.create_team') }}"
+                        class="btn btn-sm btn-primary rounded-pill px-4">Create Team</a>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if project and latest_log and latest_log.review %}
+            <div
+                class="mt-4 p-3 rounded-4 bg-{{ 'success' if latest_log.review.status == 'Approved' else 'warning' if latest_log.review.status == 'Waiting' else 'danger' }}-light border border-{{ 'success' if latest_log.review.status == 'Approved' else 'warning' if latest_log.review.status == 'Waiting' else 'danger' }}">
+                <h6 class="fw-bold small d-flex align-items-center gap-2 mb-2">
+                    <i data-lucide="message-square" style="width: 14px;"></i> Guide Feedback
+                </h6>
+                <p class="small mb-2 fw-semibold">Week {{ latest_log.week_number }}: {{ latest_log.review.status }}</p>
+                {% if latest_log.review.suggestions %}
+                <p class="x-small text-muted mb-0">{{ latest_log.review.suggestions }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Analytics & Activity Column -->
+    <div class="col-lg-8">
+        {% if project %}
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card p-4 border-0 shadow-sm text-center stat-card bg-primary text-white overflow-hidden">
+                    <p class="small opacity-75 mb-1">Contribution Score</p>
+                    {% if project.status == 'Final Approved' %}
+                        <h1 class="display-4 fw-800 mb-0">{{ evaluation.contribution_score if evaluation else 0 }}%</h1>
+                        <div class="mt-2 small px-3 py-1 bg-white bg-opacity-20 rounded-pill d-inline-block">
+                            {{ evaluation.behaviour_tags if evaluation else 'Certified Contribution' }}
+                        </div>
+                    {% else %}
+                        <h1 class="display-5 fw-bold mb-0">PENDING</h1>
+                        <div class="mt-2 small px-3 py-1 bg-white bg-opacity-20 rounded-pill d-inline-block">
+                            Visible after Final HOD Approval
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-4 border-0 shadow-sm text-center stat-card bg-white overflow-hidden">
+                    <p class="small text-muted mb-1">Project Risk Level</p>
+                    <h1
+                        class="display-4 fw-800 mb-0 text-{{ 'success' if evaluation and evaluation.risk_level == 'ON_TRACK' else 'danger' }}">
+                        {{ evaluation.risk_level if evaluation else 'ON_TRACK' }}
+                    </h1>
+                    <div class="mt-2">
+                        <span class="badge bg-light text-muted border rounded-pill px-3">
+                            <i data-lucide="clock" class="me-1" style="width: 10px;"></i>
+                            Synced: {{ ist_sync_time if ist_sync_time else 'Just Now' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- GitHub Detailed Stats -->
+        <div class="d-flex justify-content-between align-items-center mb-3 mt-2 animate-fade-in" style="animation-delay: 0.03s;">
+            <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                <i data-lucide="github" class="text-dark" style="width: 20px;"></i>
+                GitHub Contribution Pulse
+            </h5>
+            <a href="{{ url_for('project.sync_github', project_id=project.id) }}" 
+               class="btn btn-sm btn-white border shadow-sm rounded-pill px-3 fw-bold text-primary hover-lift">
+                <i data-lucide="refresh-cw" class="me-1" style="width: 14px;"></i>
+                SYNC NOW
+            </a>
+        </div>
+        <div class="row g-3 mb-4 animate-fade-in" style="animation-delay: 0.05s;">
+            <div class="col-md-4">
+                <div class="glass-card p-3 border-0 shadow-sm text-center bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                        <i data-lucide="git-commit" class="text-primary" style="width: 16px;"></i>
+                        <p class="small text-muted mb-0 fw-bold">TOTAL COMMITS</p>
+                    </div>
+                    <h3 class="fw-800 mb-0">{{ activity[0].commits if activity else 0 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-3 border-0 shadow-sm text-center bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                        <i data-lucide="plus-circle" class="text-success" style="width: 16px;"></i>
+                        <p class="small text-muted mb-0 fw-bold">LINES ADDED</p>
+                    </div>
+                    <h3 class="fw-800 mb-0 text-success">+{{ activity[0].additions if activity else 0 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="glass-card p-3 border-0 shadow-sm text-center bg-white h-100">
+                    <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                        <i data-lucide="minus-circle" class="text-danger" style="width: 16px;"></i>
+                        <p class="small text-muted mb-0 fw-bold">LINES DELETED</p>
+                    </div>
+                    <h3 class="fw-800 mb-0 text-danger">-{{ activity[0].deletions if activity else 0 }}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Live GitHub Commit Feed -->
+        <div class="glass-card p-4 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.08s;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i data-lucide="activity" class="text-primary" style="width: 18px;"></i>
+                    Live Commit Feed
+                </h6>
+                <div class="spinner-border spinner-border-sm text-primary d-none" id="commit-loader" role="status"></div>
+            </div>
+            <div id="commit-feed" class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+                <p class="text-muted small text-center py-3">Fetching latest commits...</p>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Development Activity</h5>
+                <span class="badge bg-light text-muted border px-3 rounded-pill">Last 7 Days</span>
+            </div>
+            <canvas id="activityChart" height="100"></canvas>
+        </div>
+
+        <div class="glass-card p-4 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.15s;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                    <i data-lucide="gantt-chart" class="text-primary" style="width: 20px;"></i>
+                    Project Timeline
+                </h5>
+                <span class="badge bg-primary-light text-primary border border-primary border-opacity-25 px-3 rounded-pill">Roadmap</span>
+            </div>
+            <div class="w-100 overflow-auto mt-2">
+                <pre class="mermaid">
+gantt
+    dateFormat  YYYY-MM-DD
+    axisFormat  %b %d
+    
+    section Planning
+    Proposal Submission     :done,    p1, {{ project.created_at.strftime('%Y-%m-%d') if project else '2024-01-01' }}, 7d
+    System Design Roadmap   :active,  p2, after p1, 14d
+    
+    section Execution
+    Core Implementation     :         e1, after p2, 21d
+    Mid-Term Review         :milestone, m1, after p2, 0d
+    UI & Integration        :         e2, after e1, 14d
+    
+    section Delivery
+    Testing & QA            :         f1, after e2, 7d
+    Final Report Gen        :         f2, after f1, 7d
+    Final Defense           :milestone, m2, after f2, 0d
+                </pre>
+            </div>
+        </div>
+
+        <div class="glass-card p-4 shadow-sm mb-4 animate-fade-in" style="animation-delay: 0.18s;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Team Member Insights</h5>
+                <span class="badge bg-primary-light text-primary rounded-pill px-3">Anonymous Feedback</span>
+            </div>
+
+            {% if peer_insights %}
+            <div class="row g-3">
+                {% for insight in peer_insights %}
+                <div class="col-md-6">
+                    <div class="p-3 rounded-4 bg-light border border-white shadow-sm h-100 position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex gap-1 text-warning">
+                                {% for i in range(insight.score) %}<i data-lucide="star" style="width: 14px; fill: currentColor;"></i>{% endfor %}
+                            </div>
+                            <span class="x-small text-muted">Week {{ insight.week_number }}</span>
+                        </div>
+                        <p class="small text-dark mb-0 italic">"{{ insight.feedback if insight.feedback else 'No specific comments provided.' }}"</p>
+                        <div class="position-absolute bottom-0 end-0 p-2 opacity-10">
+                            <i data-lucide="quote" style="width: 32px;"></i>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 bg-light rounded-4 border border-dashed">
+                <i data-lucide="message-square-dashed" class="text-muted mb-2" style="width: 24px;"></i>
+                <p class="small text-muted italic">Once your teammates evaluate your work, their anonymous insights will appear here.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="glass-card p-4 shadow-sm animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h5 class="fw-bold mb-0">Submission Timeline</h5>
+                    <p class="text-muted small mb-0">Weekly progress logs</p>
+                </div>
+                <a href="{{ url_for('weekly.upload_log') }}" class="btn btn-primary rounded-pill px-4 shadow-sm btn-sm">
+                    <i data-lucide="plus" class="me-1" style="width: 14px;"></i> Upload Log
+                </a>
+            </div>
+
+            <div class="list-group list-group-flush border-top">
+                {% if project.weekly_logs %}
+                {% for log in project.weekly_logs|sort(attribute='week_number', reverse=True) %}
+                <div class="list-group-item px-0 py-3 border-bottom-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-light p-2 rounded-3">
+                                <i data-lucide="file-text" class="text-muted" style="width: 20px;"></i>
+                            </div>
+                            <div>
+                                <p class="mb-0 fw-bold">Week {{ log.week_number }} Submission</p>
+                                <small class="text-muted">{{ log.timestamp.strftime('%B %d, %Y') }}</small>
+                            </div>
+                        </div>
+                        {% if log.review %}
+                        <a href="{{ url_for('weekly.view_log', log_id=log.id) }}"
+                            class="badge bg-{{ 'success' if log.review.status == 'Approved' else 'warning' if log.review.status == 'Waiting' else 'danger' }}-light text-{{ 'success' if log.review.status == 'Approved' else 'warning' if log.review.status == 'Waiting' else 'danger' }} rounded-pill px-3 text-decoration-none shadow-sm hover-lift">
+                            {{ log.review.status }}
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('weekly.view_log', log_id=log.id) }}" class="badge bg-light text-muted border rounded-pill px-3 text-decoration-none shadow-sm hover-lift">Pending Review</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i data-lucide="upload-cloud" class="text-muted mb-2" style="width: 32px;"></i>
+                    <p class="text-muted small italic">No logs uploaded yet. Start your first submission.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="glass-card p-5 text-center shadow-lg animate-fade-in">
+            <i data-lucide="alert-circle" class="text-warning mb-4" style="width: 64px; height: 64px;"></i>
+            <h3 class="fw-800 mb-3">Action Required</h3>
+            {% if current_user.team_id %}
+            <p class="text-muted mb-4 mx-auto" style="max-width: 400px;"> Your team has been created. Next, submit your project proposal to begin tracking progress.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('project.manage_team') }}" class="btn btn-outline-primary btn-lg px-4 rounded-pill shadow-sm">Manage Team</a>
+                <a href="{{ url_for('project.submit_proposal') }}" class="btn btn-primary btn-lg px-4 rounded-pill shadow">Submit Proposal</a>
+            </div>
+            {% else %}
+            <p class="text-muted mb-4 mx-auto" style="max-width: 400px;"> You haven't joined a project team yet. To
+                begin tracking your progress and sync with GitHub, please create a new project team.</p>
+            <a href="{{ url_for('project.create_team') }}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">Create Team</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ 
+        startOnLoad: true, 
+        theme: 'base', 
+        themeVariables: {
+            primaryColor: '#eff6ff',
+            primaryTextColor: '#1e293b',
+            primaryBorderColor: '#3b82f6',
+            lineColor: '#94a3b8',
+            fontFamily: 'Inter, sans-serif'
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        const gradient = activityCtx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(67, 97, 238, 0.2)');
+        gradient.addColorStop(1, 'rgba(67, 97, 238, 0)');
+
+        const activityChartInstance = new Chart(activityCtx, {
+            type: 'line',
+            data: {
+                labels: [{% for act in activity if act.date_recorded %}"{{ act.date_recorded.strftime('%m-%d') }}"{% if not loop.last %}, {% endif %}{% endfor %}].reverse(),
+        datasets: [{
+            label: 'GitHub Commits',
+            data: [{% for act in activity if act.date_recorded %}{{ act.commits }}{% if not loop.last %}, {% endif %} {% endfor %}].reverse(),
+                borderColor: '#4361ee',
+                    borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#4361ee',
+                                pointBorderWidth: 2,
+                                    pointRadius: 4,
+                                        pointHoverRadius: 6,
+                                            tension: 0.4,
+                                                fill: true,
+                                                    backgroundColor: gradient
+                }]
+            },
+    options: {
+        responsive: true,
+            plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    grid: { borderDash: [5, 5], drawBorder: false },
+                ticks: { stepSize: 1 }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+        });
+
+        // Confetti Trigger
+        {% if evaluation and evaluation.contribution_score >= 90 %}
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#6366f1', '#4338ca', '#06b6d4']
+        });
+        {% endif %}
+
+        {% if latest_log and latest_log.review and latest_log.review.status == 'Approved' %}
+        // Only trigger if approved recently? For demo let's just trigger it.
+        confetti({
+            particleCount: 100,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#10b981', '#0ea5e9']
+        });
+        {% endif %}
+
+        // GitHub Commit Feed Logic
+        const commitFeed = document.getElementById('commit-feed');
+        const commitLoader = document.getElementById('commit-loader');
+
+        async function fetchCommits() {
+            if (!commitFeed) return;
+            {% if project %}
+            commitLoader?.classList.remove('d-none');
+            try {
+                const response = await fetch("{{ url_for('project.get_commits', project_id=project.id) }}");
+                const commits = await response.json();
+                
+                if (commits.length === 0) {
+                    commitFeed.innerHTML = '<p class="text-muted small text-center py-3">No recent commits found.</p>';
+                } else {
+                    commitFeed.innerHTML = commits.map(c => `
+                        <div class="p-2 rounded-3 bg-light border-start border-4 border-primary shadow-sm hover-lift mb-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <p class="mb-0 small fw-bold text-dark text-truncate" style="max-width: 80%;">${c.message}</p>
+                                <code class="x-small text-primary bg-primary-light px-1 rounded">${c.sha}</code>
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span class="x-small text-muted"><i data-lucide="user" style="width: 10px;"></i> ${c.author}</span>
+                                <span class="x-small text-muted">${new Date(c.date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error('Error fetching commits:', err);
+                commitFeed.innerHTML = '<p class="text-danger small text-center py-3">Failed to load feed.</p>';
+            } finally {
+                commitLoader?.classList.add('d-none');
+            }
+            {% else %}
+            commitFeed.innerHTML = '<p class="text-muted small text-center py-3">No project linked to this account.</p>';
+            {% endif %}
+        }
+
+        if (commitFeed) {
+            fetchCommits();
+            // Optional: Refresh every 5 minutes
+            setInterval(fetchCommits, 300000);
+        }
+    });
+</script>
+{% endblock %}

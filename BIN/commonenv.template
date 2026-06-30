@@ -1,0 +1,21 @@
+#!/bin/sh
+
+EMPERLVER=#EMPERLVER#
+EMPERLOHBIN=#EMPERLOHBIN#
+
+export EMPERLVER EMPERLOHBIN
+
+EMPRODVER=#EMPRODVER#
+export EMPRODVER
+
+uname=`uname`
+
+# Initial Vsz for agent blows up due to 10 MB default stack size
+# for each of threads. Limiting it to 3 MB 
+if [ "$uname" = "Linux" ] ;
+then
+    if [ "$EM_THREAD_STACK_SIZE" = "" ] ; then
+	EM_THREAD_STACK_SIZE=3072
+    fi
+    ulimit -S -s $EM_THREAD_STACK_SIZE
+fi

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h3 class="mb-4">Project Proposal Submission</h3>
+            <p class="text-muted">Fill in the details for your team's project. This will be reviewed by the Project
+                Coordinator.</p>
+            <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label">Project Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g. AI-driven attendance system"
+                        required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Project Description</label>
+                    <textarea name="description" class="form-control" rows="5"
+                        placeholder="Detailed explanation of goals, tech stack, and expected outcomes..."
+                        required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-primary fw-bold">GitHub Repository URL</label>
+                    <input type="url" name="github_url" class="form-control"
+                        placeholder="https://github.com/username/repo" value="{{ project.github_url if project else '' }}" required>
+                    <small class="text-muted">Make sure the repository is public or you've provided access.</small>
+                </div>
+
+                <div class="glass-card p-3 mb-4 bg-light border-0">
+                    <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                        <i data-lucide="users" style="width: 18px;"></i>
+                        Team Collaboration Mapping
+                    </h6>
+                    <p class="x-small text-muted mb-3">Provide the GitHub handles for each team member to track individual contributions accurately.</p>
+                    
+                    {% for member in team.members %}
+                    <div class="mb-2">
+                        <label class="x-small fw-bold text-muted text-uppercase">{{ member.username }} {% if member.id == team.team_lead_id %}(Lead){% endif %}</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0"><i data-lucide="github" style="width: 14px;"></i></span>
+                            <input type="text" name="gh_user_{{ member.id }}" class="form-control border-start-0" 
+                                   placeholder="GitHub Username" value="{{ member.github_username or '' }}">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('project.manage_team') }}" class="btn btn-outline-secondary">Back to Team</a>
+                    <button type="submit" class="btn btn-success px-5">Submit for Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

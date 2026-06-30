@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6">
+        <div class="glass-card p-5 mt-2 shadow-lg animate-fade-in">
+            <div class="text-center mb-5">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Mentora Ai Logo"
+                    style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 2px solid var(--primary-light);">
+                <h3 class="fw-800">Staff Registration</h3>
+                <p class="text-muted small">Academic portal for HOD, Coordinators, and Faculty</p>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                        placeholder="Dr. Alice") }}
+                        {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                        placeholder="alice@university.edu") }}
+                        {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        {{ form.department.label(class="form-label") }}
+                        {{ form.department(class="form-control" + (" is-invalid" if form.department.errors else ""),
+                        placeholder="Computer Science") }}
+                        {% for error in form.department.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        {{ form.role.label(class="form-label") }}
+                        {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+                        {% for error in form.role.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                        placeholder="••••••••") }}
+                        {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors
+                        else ""), placeholder="••••••••") }}
+                        {% for error in form.confirm_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ form.submit(class="btn btn-primary w-100 py-3 shadow") }}
+            </form>
+            <div class="mt-4 text-center">
+                <p class="small text-muted mb-0">Already have an account? <a href="{{ url_for('auth.login') }}"
+                        class="fw-bold">Login here</a></p>
+                <p class="x-small text-muted mt-2">Not staff? <a href="{{ url_for('auth.register_select') }}"
+                        class="text-decoration-none fw-bold">Change role</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

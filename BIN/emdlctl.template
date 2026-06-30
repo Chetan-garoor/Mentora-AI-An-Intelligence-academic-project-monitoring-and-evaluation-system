@@ -1,0 +1,169 @@
+#!/usr/bin/sh 
+
+#
+# Make sure certain environment variables are set 
+#
+cd `dirname $0`/..
+EMDROOT=%EMDROOT%
+export EMDROOT
+JAVA_HOME=%JAVA_HOME%
+export JAVA_HOME
+
+# set ORACLE_HOME to be used by Oraperl
+ORACLE_HOME=$EMDROOT
+export ORACLE_HOME
+
+if [ -f $HOME/.emrc ]
+then
+   . $HOME/.emrc
+fi
+
+if [ "$JAVA_HOME" = "" ]
+then
+  printf "Define \$JAVA_HOME before running `basename $0` \n"
+  exit 1
+fi
+
+# Parse the options here
+while getopts :hc arg
+do
+  case $arg in 
+    h) echo "Usage : $0 [-h][-c] "
+       echo "   h - Help (this message)"
+       echo "   c - Configure targets mode. Discovers and configures host and database targets for management."
+       exit 0;;
+    c) CONFIGURE=TRUE;;
+    \?) echo "Unrecognized option"
+        echo "Usage: $0 [-h][-c] "
+        exit 1;;
+   esac
+done
+
+# these variables - PERL5LIB and LD_LIBRARY_PATH - are set so that
+# osfetchlets can run correctly
+
+uname=`uname`
+if [ "$uname" = "SunOS" ];
+then
+
+# Set up TZ if not already set, this is done as a workaround
+# for bug in JDK 1.3.1
+  if [ "$TZ" = "" ]
+  then
+    TMPFILE=/tmp/setTZ.sh.$$
+    grep -v "^#" /etc/TIMEZONE | grep TZ > $TMPFILE
+    . $TMPFILE
+    echo "TZ set to $TZ\n"
+    rm $TMPFILE
+  fi
+  export TZ 
+
+fi
+
+PERL5LIB_NATIVE=:$ORACLE_HOME/perl/lib:$ORACLE_HOME/perl/lib/site_perl
+PERL5LIB_TMP=${PERL5LIB_NATIVE}:$EMDROOT/sysman/admin/scripts
+
+if [ "$PERL5LIB" = "" ] ;
+then 
+   PERL5LIB=${PERL5LIB_TMP}
+else
+   PERL5LIB=${PERL5LIB_TMP}:${PERL5LIB}
+fi
+
+if [ "$LD_LIBRARY_PATH" = "" ] ; then
+   LD_LIBRARY_PATH=$EMDROOT/perl/lib:$EMDROOT/lib
+else
+   LD_LIBRARY_PATH=$EMDROOT/perl/lib:$EMDROOT/lib:$LD_LIBRARY_PATH
+fi
+
+export PERL5LIB 
+export LD_LIBRARY_PATH
+
+#
+# Set path so that our native executables can be found when run from java
+#
+PATH=$EMDROOT/bin:$PATH
+export PATH
+
+# use ulimit to make sure we have enough descriptors
+
+if [ "$EM_DESCRIPTORS" = "" ]
+then
+   EM_DESCRIPTORS=1024
+fi
+
+CURRENT_LIMIT=`ulimit -n`
+
+if [ "$CURRENT_LIMIT" != "unlimited" ]
+then
+   if [ $CURRENT_LIMIT -lt $EM_DESCRIPTORS ]
+   then
+      ulimit -n $EM_DESCRIPTORS
+   fi
+fi
+
+# Check if this is target configuration mode "
+if [ "$CONFIGURE" = "TRUE" ]
+then
+   echo "Setting up Host and Database targets for management \n"
+   $EMDROOT/perl/bin/perl $EMDROOT/sysman/admin/scripts/emdl_discovery.pl
+   exit 0
+fi
+
+TIME_TO_COLLECT=$1
+
+# Set up collect time. Pick from command-line if provided.
+if test -z "$TIME_TO_COLLECT" ;
+then
+  TIME_TO_COLLECT=45
+else
+  case "$TIME_TO_COLLECT" in
+    ''|*[!0-9]*) TIME_TO_COLLECT=45
+  esac
+  
+  if test -z "$TIME_TO_COLLECT"
+  then
+    TIME_TO_COLLECT=$1
+  fi
+fi
+
+success="n"
+failureStatus="0"
+
+CLASSPATH=$EMDROOT/jlib/emd.jar:$EMDROOT/jlib/ewt3.jar:$EMDROOT/jlib/http_client.jar:$EMDROOT/jlib/log4j-core.jar:$EMDROOT/jlib/xmlparserv2.jar:$EMDROOT/jlib/classes12.jar:$EMDROOT/jlib/share.jar:$EMDROOT/jlib/servlet.jar:$EMDROOT/jlib/jssl-1_2.jar:$EMDROOT/jlib/javax-ssl-1_2.jar:$EMDROOT/jlib/regexp.jar:$EMDROOT/jlib/OraInstaller.jar
+
+export CLASSPATH
+
+echo "Collecting target information (this will take about $TIME_TO_COLLECT minutes)\n"
+
+$JAVA_HOME/bin/java -classpath $CLASSPATH oracle.sysman.emd.main.EMDMain $EMDROOT $TIME_TO_COLLECT 2>&1 >> $EMDROOT/sysman/log/hostConfigCollection.log
+
+result=$?
+if [ "$result" != "0" ]
+then
+  echo "Collection of target data failed\n"
+  failureStatus=$result
+else
+  success="y"
+fi
+
+
+if [ "$success" = "y" ]
+then
+  if [ -f $EMDROOT/sysman/emd/upload/*.xml ]
+  then
+      TIMESTAMP=`date +%m-%d-%Y-%H-%M`
+      cd $EMDROOT/sysman/emd/upload
+      tar -cf %HOSTNAME%_$TIMESTAMP.tar *.xml
+      echo "Writing out collected host configuration to $EMDROOT/%HOSTNAME%_$TIMESTAMP.tar\n";
+      mv -i %HOSTNAME%_$TIMESTAMP.tar $EMDROOT
+      rm -rf $EMDROOT/sysman/emd/upload/*
+      exit 0
+  else
+     echo " Successfully Uploaded data to smpint-sp.us.oracle.com:1812 \n"
+     echo " Connect to http://smpint-sp.us.oracle.com:1812 to view your data \n"
+     exit 0
+  fi
+  exit $failureStatus 
+fi
+

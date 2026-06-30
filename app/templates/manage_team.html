@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-7">
+        <div class="card p-4">
+            <h4 class="mb-4">Manage Team: {{ team.name }}</h4>
+
+            <ul class="list-group mb-4">
+                {% for member in team.members %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ member.username }}</strong>
+                        <span class="text-muted small">({{ member.email }})</span>
+                        {% if member.id == team.team_lead_id %}
+                        <span class="badge bg-warning ms-2">Lead</span>
+                        {% endif %}
+                    </div>
+                    {% if current_user.id == team.team_lead_id and not team.is_frozen and member.id != team.team_lead_id
+                    %}
+                    <form method="POST" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="set_lead">
+                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                        <button type="submit" class="btn btn-sm btn-outline-warning">Make Lead</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if not team.is_frozen and team.members|length < 4 and current_user.id==team.team_lead_id %} <h5>Add
+                Member</h5>
+                <form method="POST" class="row g-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="add_member">
+                    <div class="col-auto">
+                        <input type="email" name="email" class="form-control" placeholder="Student Email" required>
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </form>
+                {% elif team.is_frozen %}
+                <div class="alert alert-info">Team is frozen after approval. No more changes allowed.</div>
+                {% endif %}
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card p-4 bg-light">
+            <h5>Team Rules</h5>
+            <ul class="small">
+                <li>Maximum 4 members per team.</li>
+                <li>Only the Team Lead can add members and change the lead.</li>
+                <li>Only the Team Lead can submit the project proposal.</li>
+                <li>Once the project is approved, the team is <strong>frozen</strong>.</li>
+            </ul>
+            <hr>
+            {% if current_user.id == team.team_lead_id %}
+            <a href="{{ url_for('project.submit_proposal') }}" class="btn btn-success w-100 mt-2">Submit Project
+                Proposal</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

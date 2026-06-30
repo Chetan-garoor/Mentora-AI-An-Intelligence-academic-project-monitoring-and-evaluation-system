@@ -1,0 +1,36 @@
+#!%ORACLE_HOME%/perl/bin/perl
+
+##############
+#first go through and close all file descriptors greater than or equal to
+#three.  this is a workaround for JVM bug 
+#http://developer.java.sun.com/developer/bugParade/bugs/4843136.html
+#where Java doesn't always close both ends of pipe in child.
+##############
+for($i = 3;$i < 1024; $i++)
+{
+    if (! open(TMPHANDLE, "<&=$i")) {
+        close(TMPHANDLE);
+    }
+
+}
+
+delete($ENV{"LD_LIBRARY_PATH"});
+delete($ENV{"NLS_LANG"});
+delete($ENV{"ORA_NLS"});
+delete($ENV{"ORA_NLS32"});
+delete($ENV{"ORA_NLS33"});
+delete($ENV{"CONSOLE_CFG"});
+
+if($ENV{"REMOTE_EMDROOT"} eq "")
+{
+    $ENV{"ORACLE_HOME"}="%ORACLE_HOME%";
+    $ENV{"EMDROOT"}="%EMDROOT%";
+}
+else
+{
+    $ENV{"ORACLE_HOME"} = $ENV{"REMOTE_EMDROOT"};
+    $ENV{"EMDROOT"} = $ENV{"REMOTE_EMDROOT"};
+}
+
+
+exec("$ENV{'EMDROOT'}/bin/emtgtctl2 @ARGV");

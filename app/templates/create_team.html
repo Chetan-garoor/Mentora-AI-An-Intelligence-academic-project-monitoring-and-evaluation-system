@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h3 class="mb-4">Create Your Team</h3>
+            <p class="text-muted small">As the creator, you will be the initial Team Lead. You can have a maximum of 4
+                members.</p>
+            <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label">Team Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. AI Explorers" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Create Team</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

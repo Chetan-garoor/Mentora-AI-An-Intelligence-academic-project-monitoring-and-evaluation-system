@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h3 class="mb-4">Upload Weekly Progress</h3>
+            <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label">Weekly Report (PDF)</label>
+                    <input type="file" name="report" class="form-control" accept="application/pdf" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Screenshot (Project Progress)</label>
+                    <input type="file" name="screenshot" class="form-control" accept="image/*">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Remarks / Summary of Work</label>
+                    <textarea name="remarks" class="form-control" rows="4" required
+                        placeholder="What did you achieve this week?"></textarea>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Upload Progress</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

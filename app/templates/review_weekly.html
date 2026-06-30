@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card p-4">
+            <h4 class="mb-4">Review Weekly Submission</h4>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Submission Details</h6>
+                    <p><strong>Student:</strong> {{ log.student.username }}</p>
+                    <p><strong>Project:</strong> {{ log.project.title }}</p>
+                    <p><strong>Week:</strong> {{ log.week_number }}</p>
+                    <p><strong>Submitted At:</strong> {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                <div class="col-md-6 border-start">
+                    <h6>Student Remarks</h6>
+                    <p class="text-muted">{{ log.remarks or 'No remarks provided.' }}</p>
+                    {% if log.report_path %}
+                    <a href="{{ url_for('weekly.uploaded_file', filename=log.report_path) }}"
+                        class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm" target="_blank">View Report PDF</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Threaded Comments / Annotations -->
+            <div class="mb-5">
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="message-square" class="text-primary" style="width: 20px;"></i>
+                    Document Annotations & Discussion
+                </h6>
+                <div class="chat-box bg-light border p-3 rounded-4 mb-3" style="max-height: 350px; overflow-y: auto;">
+                    {% for comment in log.comments %}
+                    <div class="mb-3 p-3 rounded-4 shadow-sm {{ 'bg-primary text-white ms-5' if comment.user_id == current_user.id else 'bg-white border me-5' }}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="fw-bold {{ 'text-white' if comment.user_id == current_user.id else 'text-primary' }}">{{ comment.user.username }}</small>
+                                <span class="badge {{ 'bg-white text-primary' if comment.user_id == current_user.id else ('bg-primary' if comment.user.role == 'FACULTY' else 'bg-secondary') }} x-small py-1 rounded-pill">
+                                    {{ 'MEMBER' if comment.user.role == 'STUDENT' else 'FACULTY' }}
+                                </span>
+                            </div>
+                            <small class="x-small {{ 'text-light opacity-75' if comment.user_id == current_user.id else 'text-muted' }}">{{ comment.created_at.strftime('%H:%M %b %d') }}</small>
+                        </div>
+                        <p class="mb-0 small lh-sm">{{ comment.content }}</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i data-lucide="message-circle" class="text-muted mb-2 opacity-50" style="width: 32px; height: 32px;"></i>
+                        <p class="text-muted small mb-0 fw-semibold">No annotations yet.</p>
+                        <p class="text-muted small">Start a discussion by adding a comment below.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form method="POST" action="{{ url_for('weekly.add_comment', log_id=log.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                        <input type="text" name="content" class="form-control border-0 px-4 py-3 bg-light" placeholder="Add an inline annotation or question..." required>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i data-lucide="send" class="me-1" style="width: 16px;"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <hr class="my-4">
+
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="check-square" class="text-success" style="width: 20px;"></i>
+                    Final Review Decision
+                </h6>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small text-muted">Review Status</label>
+                    <select name="status" class="form-select" required>
+                        <option value="Approved" {{ 'selected' if log.review and log.review.status=='Approved' }}>
+                            Approved</option>
+                        <option value="Waiting" {{ 'selected' if log.review and log.review.status=='Waiting' }}>Waiting
+                            (Pending changes)</option>
+                        <option value="Rejected" {{ 'selected' if log.review and log.review.status=='Rejected' }}>
+                            Rejected</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Suggestions / Feedback</label>
+                    <textarea name="suggestions" class="form-control" rows="4"
+                        placeholder="Enter your suggestions for improvement...">{{ log.review.suggestions if log.review else '' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Required Code Changes / Corrections</label>
+                    <textarea name="code_corrections" class="form-control" rows="4"
+                        placeholder="Paste specific code snippets or logic changes required...">{{ log.review.code_corrections if log.review else '' }}</textarea>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">Back</a>
+                    <button type="submit" class="btn btn-primary px-5">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

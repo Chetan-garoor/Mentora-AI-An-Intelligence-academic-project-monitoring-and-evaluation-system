@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    @media print {
+
+        .navbar,
+        .btn,
+        .d-print-none,
+        .breadcrumb {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+            padding: 0 !important;
+            color: black !important;
+        }
+
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .glass-card {
+            border: none !important;
+            box-shadow: none !important;
+            background: white !important;
+        }
+
+        .card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #4361ee !important;
+            margin-bottom: 30px !important;
+            padding-bottom: 20px !important;
+        }
+
+        .student-block {
+            break-inside: avoid;
+            border: 1px solid #eee !important;
+            margin-bottom: 20px;
+            page-break-after: auto;
+        }
+
+        .badge {
+            border: 1px solid #ccc !important;
+            color: black !important;
+            background: transparent !important;
+        }
+
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+    }
+
+    .report-header {
+        background: linear-gradient(135deg, #4361ee, #4cc9f0);
+        color: white;
+        padding: 40px;
+        border-radius: 24px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(67, 97, 238, 0.2);
+    }
+
+    .stat-badge {
+        background: rgba(67, 97, 238, 0.05);
+        border: 1px solid rgba(67, 97, 238, 0.1);
+        padding: 15px;
+        border-radius: 16px;
+    }
+
+    .student-card {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="glass-card p-0 overflow-hidden shadow-lg border-0 bg-white">
+            <!-- Professional Header -->
+            <div class="report-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-800 mb-2">PROJECT INSIGHT REPORT</h1>
+                    <p class="mb-0 opacity-75 fw-semibold">Academic Integrity & Progress Tracking System</p>
+                </div>
+                <div class="text-end opacity-75">
+                    <div class="fw-bold">ID: PRJ-{{ report.team_name[:3]|upper }}-{{
+                        report.generated_at.strftime('%y%m%d') }}</div>
+                    <small>{{ report.generated_at.strftime('%B %d, %Y | %H:%M') }}</small>
+                </div>
+            </div>
+
+            <div class="p-4 p-md-5">
+                <!-- Project Detail Section -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-8">
+                        <h4 class="fw-bold text-dark border-start border-4 border-primary ps-3 mb-3">{{
+                            report.project_title }}</h4>
+                        <p class="text-muted mb-4">{{ report.description }}</p>
+                        <div class="d-flex gap-3">
+                            <span
+                                class="badge bg-primary-light text-primary px-3 py-2 rounded-pill border border-primary-light">Team:
+                                {{ report.team_name }}</span>
+                            <span
+                                class="badge bg-success-light text-success px-3 py-2 rounded-pill border border-success-light">Status:
+                                {{ report.status }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 bg-light rounded-4 h-100">
+                            <h6 class="text-muted small fw-bold text-uppercase mb-3">Resource Link</h6>
+                            <a href="{{ report.github_url }}" target="_blank"
+                                class="text-primary text-break small fw-semibold">
+                                <i data-lucide="github" class="me-1" style="width: 14px;"></i> {{ report.github_url }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Originality & AI Scan Section -->
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="p-4 rounded-4 border border-light shadow-sm bg-white position-relative overflow-hidden">
+                            <div class="position-absolute end-0 top-0 h-100 w-25 bg-{{ 'success' if report.code_risk_level == 'LOW' else 'warning' if report.code_risk_level == 'MEDIUM' else 'danger' }} opacity-10" style="clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);"></div>
+                            
+                            <h5 class="fw-800 d-flex align-items-center gap-2 mb-4">
+                                <i data-lucide="shield-check" class="text-{{ 'success' if report.code_risk_level == 'LOW' else 'warning' if report.code_risk_level == 'MEDIUM' else 'danger' }}"></i>
+                                Code Originality & Plagiarism Scan
+                            </h5>
+                            
+                            <div class="row align-items-center">
+                                <div class="col-md-3 text-center border-end">
+                                    <h1 class="display-3 fw-900 mb-0 text-{{ 'success' if report.code_risk_level == 'LOW' else 'warning' if report.code_risk_level == 'MEDIUM' else 'danger' }}">{{ report.originality_score }}%</h1>
+                                    <p class="text-muted small fw-bold text-uppercase mt-2 mb-0">Originality Score</p>
+                                    <span class="badge bg-{{ 'success' if report.code_risk_level == 'LOW' else 'warning' if report.code_risk_level == 'MEDIUM' else 'danger' }}-light text-{{ 'success' if report.code_risk_level == 'LOW' else 'warning' if report.code_risk_level == 'MEDIUM' else 'danger' }} mt-2 rounded-pill px-3">Risk: {{ report.code_risk_level }}</span>
+                                </div>
+                                <div class="col-md-9 ps-md-4 mt-4 mt-md-0">
+                                    <h6 class="fw-bold mb-3 text-dark">AI Scan Insights:</h6>
+                                    <ul class="text-muted small mb-0 ps-3 space-y-2">
+                                        {% for insight in report.code_insights %}
+                                        <li>{{ insight }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Analytics Section -->
+                <h5 class="fw-800 mb-4 d-flex align-items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="text-primary"></i> Team Performance Analytics
+                </h5>
+
+                <div class="space-y-4">
+                    {% for student in report.students %}
+                    <div class="student-card student-block p-4 rounded-4 mb-4 bg-white shadow-sm border border-light">
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <h5 class="fw-bold mb-0 text-dark">{{ student.username }}</h5>
+                                <p class="text-muted small mb-0">{{ student.reg_no }} | <span
+                                        class="fw-semibold text-primary">{{ student.role }}</span></p>
+                            </div>
+                            <div class="text-end">
+                                <span
+                                    class="badge bg-{{ 'success' if student.risk_level == 'ON_TRACK' else 'danger' }} px-3 py-2 rounded-pill shadow-sm">
+                                    {{ student.risk_level }}
+                                </span>
+                                <div class="mt-2 x-small fw-bold text-uppercase text-muted">{{ student.behaviour_tags }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 text-center">
+                            <div class="col-md-2">
+                                <div class="stat-badge h-100">
+                                    <h5 class="fw-bold text-primary mb-0">{{ student.contribution_score }}%</h5>
+                                    <small class="text-muted uppercase fw-bold" style="font-size: 8px;">Score</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="stat-badge h-100">
+                                    <h5 class="fw-bold text-dark mb-0">{{ student.total_commits }}</h5>
+                                    <small class="text-muted uppercase fw-bold" style="font-size: 8px;">Commits</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="stat-badge h-100">
+                                    <h5 class="fw-bold text-success mb-0">+{{ student.total_additions }}</h5>
+                                    <small class="text-muted uppercase fw-bold" style="font-size: 8px;">Added</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="stat-badge h-100">
+                                    <h5 class="fw-bold text-danger mb-0">-{{ student.total_deletions if student.total_deletions else 0 }}</h5>
+                                    <small class="text-muted uppercase fw-bold" style="font-size: 8px;">Deleted</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="stat-badge h-100">
+                                    <h5 class="fw-bold text-dark mb-0">{{ student.total_logs }}</h5>
+                                    <small class="text-muted uppercase fw-bold" style="font-size: 8px;">Logs</small>
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-start">
+                                <div class="p-2 border-start h-100">
+                                    <small class="text-muted d-block small mb-1 fw-bold text-uppercase"
+                                        style="font-size: 8px;">Latest Feedback</small>
+                                    <div class="small fst-italic text-dark" style="font-size: 10px; line-height: 1.1;">"{{
+                                        student.latest_feedback }}"</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Footer Signatures (Only for Print) -->
+                <div class="row mt-5 pt-5 d-none d-print-flex">
+                    <div class="col-4 text-center">
+                        <div class="border-top border-dark pt-2 small">Project Coordinator</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border-top border-dark pt-2 small">Faculty Guide</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border-top border-dark pt-2 small">Head of Department</div>
+                    </div>
+                </div>
+
+                <div class="mt-5 text-center d-print-none animate-fade-in">
+                    <button onclick="window.print()"
+                        class="btn btn-primary px-5 py-3 rounded-pill shadow hover-lift me-2">
+                        <i data-lucide="printer" class="me-2"></i> Download / Print PDF
+                    </button>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-light px-5 py-3 rounded-pill">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

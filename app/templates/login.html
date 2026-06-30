@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-5">
+        <div class="glass-card p-5 mt-4 shadow-lg animate-fade-in">
+            <div class="text-center mb-5">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Mentora Ai Logo"
+                    style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 2px solid var(--primary-light);">
+                <h3 class="fw-800">Welcome Back</h3>
+                <p class="text-muted small">Access your academic monitoring dashboard</p>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-4">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                    placeholder="name@university.edu") }}
+                    {% for error in form.email.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-4">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                    placeholder="••••••••") }}
+                    {% for error in form.password.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-4">
+                    {{ form.role.label(class="form-label") }}
+                    {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+                    {% for error in form.role.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {{ form.submit(class="btn btn-primary w-100 py-3 shadow mb-3") }}
+
+                {% if failed_attempts and failed_attempts >= 3 %}
+                <div class="text-center animate-fade-in mb-2">
+                    <a href="{{ url_for('auth.forgot_password') }}"
+                        class="text-danger fw-bold small text-decoration-none">
+                        <i data-lucide="key-round" class="me-1" style="width: 14px;"></i> Forgot Password?
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+            <div class="mt-4 text-center">
+                <p class="small text-muted mb-0">Don't have an account?</p>
+                <div class="mt-2">
+                    <a href="{{ url_for('auth.register_select') }}"
+                        class="text-decoration-none fw-bold small text-primary">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

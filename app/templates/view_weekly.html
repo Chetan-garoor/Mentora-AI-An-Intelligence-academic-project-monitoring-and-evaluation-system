@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card p-4 rounded-4 shadow border-0 animate-fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h4 class="fw-800 mb-0 d-flex align-items-center gap-2">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded-circle">
+                        <i data-lucide="file-text" class="text-primary"></i>
+                    </div>
+                    Week {{ log.week_number }} Submission
+                </h4>
+                {% if log.review %}
+                <span class="badge bg-{{ 'success' if log.review.status == 'Approved' else 'warning' if log.review.status == 'Waiting' else 'danger' }}-light text-{{ 'success' if log.review.status == 'Approved' else 'warning' if log.review.status == 'Waiting' else 'danger' }} px-3 py-2 rounded-pill fs-6 border">
+                    {{ log.review.status }}
+                </span>
+                {% else %}
+                <span class="badge bg-light text-muted px-3 py-2 rounded-pill fs-6 border">Pending Review</span>
+                {% endif %}
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Submission Details</h6>
+                    <div class="bg-light p-3 rounded-4">
+                        <p class="mb-2 small"><strong>Submitted By:</strong> {{ log.student.username }}</p>
+                        <p class="mb-2 small"><strong>Project:</strong> {{ log.project.title }}</p>
+                        <p class="mb-0 small"><strong>Timestamp:</strong> {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mt-4 mt-md-0">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Student Remarks</h6>
+                    <div class="bg-light p-3 rounded-4 h-100">
+                        <p class="text-dark small mb-3">{{ log.remarks or 'No remarks provided during submission.' }}</p>
+                        {% if log.report_path %}
+                        <a href="{{ url_for('weekly.uploaded_file', filename=log.report_path) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm fw-bold" target="_blank">
+                            <i data-lucide="external-link" class="me-1" style="width: 14px;"></i> View Attached Report
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if log.review %}
+            <div class="bg-primary-light p-4 rounded-4 border border-primary border-opacity-25 mb-5">
+                <h6 class="fw-bold d-flex align-items-center gap-2 text-primary mb-3">
+                    <i data-lucide="clipboard-check" style="width: 20px;"></i> Guide's Official Feedback
+                </h6>
+                <div class="row">
+                    <div class="col-md-6 border-end border-primary border-opacity-25">
+                        <p class="text-muted small fw-bold mb-1">Suggestions / Comments</p>
+                        <p class="small text-dark">{{ log.review.suggestions or 'No general suggestions provided.' }}</p>
+                    </div>
+                    <div class="col-md-6 ps-md-4">
+                        <p class="text-muted small fw-bold mb-1">Code Corrections</p>
+                        <p class="small text-dark">{{ log.review.code_corrections or 'No specific code corrections required.' }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <hr class="my-4 border-light">
+
+            <!-- Threaded Comments / Annotations -->
+            <div class="mb-4">
+                <h6 class="fw-bold d-flex align-items-center gap-2 mb-3">
+                    <i data-lucide="message-square" class="text-primary" style="width: 20px;"></i>
+                    Discussion & Annotations
+                </h6>
+                <div class="chat-box bg-light border p-3 rounded-4 mb-3" style="max-height: 350px; overflow-y: auto;">
+                    {% for comment in log.comments %}
+                    <div class="mb-3 p-3 rounded-4 shadow-sm {{ 'bg-primary text-white ms-5' if comment.user_id == current_user.id else 'bg-white border me-5' }}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <small class="fw-bold {{ 'text-white' if comment.user_id == current_user.id else 'text-primary' }}">{{ comment.user.username }}</small>
+                                <span class="badge {{ 'bg-white text-primary' if comment.user_id == current_user.id else ('bg-primary' if comment.user.role == 'FACULTY' else 'bg-secondary') }} x-small py-1 rounded-pill">
+                                    {{ 'MEMBER' if comment.user.role == 'STUDENT' else 'FACULTY' }}
+                                </span>
+                            </div>
+                            <small class="x-small {{ 'text-light opacity-75' if comment.user_id == current_user.id else 'text-muted' }}">{{ comment.created_at.strftime('%H:%M %b %d') }}</small>
+                        </div>
+                        <p class="mb-0 small lh-sm">{{ comment.content }}</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i data-lucide="message-circle" class="text-muted mb-2 opacity-50" style="width: 32px; height: 32px;"></i>
+                        <p class="text-muted small mb-0 fw-semibold">No annotations yet.</p>
+                        <p class="text-muted small">Have questions? Discuss this submission with your guide below.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <form method="POST" action="{{ url_for('weekly.add_comment', log_id=log.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden">
+                        <input type="text" name="content" class="form-control border-0 px-4 py-3 bg-light" placeholder="Ask a question or reply to feedback..." required>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i data-lucide="send" class="me-1" style="width: 16px;"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="d-flex justify-content-start mt-5">
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-bold">
+                    <i data-lucide="arrow-left" class="me-1" style="width: 16px;"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

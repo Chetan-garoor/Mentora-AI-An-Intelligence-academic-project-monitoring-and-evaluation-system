@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-8">
+        <div class="glass-card p-5 mt-2 shadow-lg animate-fade-in">
+            <div class="text-center mb-5">
+                <div class="rounded-circle bg-primary-light d-inline-flex p-3 mb-3">
+                    <i data-lucide="settings" class="text-primary" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 class="fw-800">Account Settings</h3>
+                <p class="text-muted small">Update your profile information and manage your security</p>
+            </div>
+
+            <!-- Profile Photo & Settings Form -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white p-4 border-bottom">
+                    <h5 class="fw-bold mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.settings') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {{ profile_form.hidden_tag() }}
+
+                        <!-- Profile Photo Upload Section -->
+                        <div class="mb-4 text-center">
+                            <div class="position-relative d-inline-block mb-3">
+                                {% if current_user.profile_photo %}
+                                <img src="{{ url_for('auth.serve_profile_photo', filename=current_user.profile_photo) }}" 
+                                     alt="Profile Photo" 
+                                     id="profile-preview"
+                                     class="rounded-circle shadow-sm" 
+                                     style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--primary-light); transition: all 0.3s ease;">
+                                {% else %}
+                                <div id="profile-placeholder" class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center text-white fw-bold shadow-sm" 
+                                     style="width: 120px; height: 120px; font-size: 2.5rem; border: 4px solid var(--primary-light); transition: all 0.3s ease;">
+                                    {{ current_user.username[:2]|upper }}
+                                </div>
+                                <img src="" alt="Profile Photo" id="profile-preview" class="rounded-circle shadow-sm d-none" 
+                                     style="width: 120px; height: 120px; object-fit: cover; border: 4px solid var(--primary-light); transition: all 0.3s ease;">
+                                {% endif %}
+                                
+                                <!-- Camera overlay button -->
+                                <label for="profile_photo" 
+                                       class="position-absolute d-flex align-items-center justify-content-center rounded-circle bg-primary text-white shadow-sm"
+                                       style="width: 36px; height: 36px; bottom: 2px; right: 2px; cursor: pointer; border: 2px solid white; transition: transform 0.2s ease;"
+                                       onmouseover="this.style.transform='scale(1.1)'" 
+                                       onmouseout="this.style.transform='scale(1)'">
+                                    <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+                                </label>
+                            </div>
+                            
+                            <div class="d-none">
+                                {{ profile_form.profile_photo(id="profile_photo", class="form-control", accept="image/*") }}
+                            </div>
+                            
+                            <p class="text-muted x-small mb-0" id="photo-filename">
+                                {% if current_user.profile_photo %}
+                                    <span class="text-success"><i data-lucide="check-circle" style="width: 12px;" class="me-1"></i>Photo uploaded</span>
+                                {% else %}
+                                    Click the camera icon to upload a photo
+                                {% endif %}
+                            </p>
+                            {% for error in profile_form.profile_photo.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ profile_form.username.label(class="form-label fw-bold") }}
+                            {{ profile_form.username(class="form-control" + (" is-invalid" if profile_form.username.errors else "")) }}
+                            {% for error in profile_form.username.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ profile_form.email.label(class="form-label fw-bold") }}
+                            {{ profile_form.email(class="form-control" + (" is-invalid" if profile_form.email.errors else "")) }}
+                            {% for error in profile_form.email.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        {% if current_user.role == 'STUDENT' %}
+                        <div class="mb-4">
+                            {{ profile_form.registration_number.label(class="form-label fw-bold") }}
+                            {{ profile_form.registration_number(class="form-control" + (" is-invalid" if profile_form.registration_number.errors else "")) }}
+                            {% for error in profile_form.registration_number.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="mb-4">
+                            {{ profile_form.department.label(class="form-label fw-bold") }}
+                            {{ profile_form.department(class="form-control" + (" is-invalid" if profile_form.department.errors else "")) }}
+                            {% for error in profile_form.department.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {{ profile_form.submit_profile(class="btn btn-primary px-4 rounded-pill shadow-sm") }}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Password Change Form -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white p-4 border-bottom">
+                    <h5 class="fw-bold mb-0">Change Password</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('auth.settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {{ password_form.hidden_tag() }}
+                        
+                        <div class="mb-4">
+                            {{ password_form.old_password.label(class="form-label fw-bold") }}
+                            {{ password_form.old_password(class="form-control" + (" is-invalid" if password_form.old_password.errors else "")) }}
+                            {% for error in password_form.old_password.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                {{ password_form.new_password.label(class="form-label fw-bold") }}
+                                {{ password_form.new_password(class="form-control" + (" is-invalid" if password_form.new_password.errors else "")) }}
+                                {% for error in password_form.new_password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                {{ password_form.confirm_password.label(class="form-label fw-bold") }}
+                                {{ password_form.confirm_password(class="form-control" + (" is-invalid" if password_form.confirm_password.errors else "")) }}
+                                {% for error in password_form.confirm_password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {{ password_form.submit_password(class="btn btn-danger px-4 rounded-pill shadow-sm") }}
+                    </form>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('profile_photo');
+        const preview = document.getElementById('profile-preview');
+        const placeholder = document.getElementById('profile-placeholder');
+        const filenameLabel = document.getElementById('photo-filename');
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        filenameLabel.innerHTML = '<span class="text-danger"><i data-lucide="alert-circle" style="width: 12px;" class="me-1"></i>File too large (max 5MB)</span>';
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        // Show preview image
+                        preview.src = ev.target.result;
+                        preview.classList.remove('d-none');
+                        if (placeholder) {
+                            placeholder.classList.add('d-none');
+                        }
+                        
+                        // Update filename display
+                        filenameLabel.innerHTML = '<span class="text-primary fw-bold"><i data-lucide="image" style="width: 12px;" class="me-1"></i>' + file.name + '</span>';
+                        lucide.createIcons();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

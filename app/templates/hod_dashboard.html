@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center mb-5 animate-fade-in mt-2">
+    <div class="rounded-circle bg-primary-light d-inline-flex p-3 mb-3">
+        <i data-lucide="crown" class="text-primary" style="width: 40px; height: 40px;"></i>
+    </div>
+    <h1 class="fw-800 text-gradient">Department Control Center</h1>
+    <p class="text-muted">Governance, Strategic Oversight & Final Approval Suite</p>
+</div>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center shadow-sm animate-fade-in" style="animation-delay: 0.1s;">
+            <p class="text-muted small fw-bold text-uppercase mb-2">Total Managed Projects</p>
+            <h1 class="display-3 fw-800 text-primary mb-0">{{ projects|length }}</h1>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center shadow-sm animate-fade-in" style="animation-delay: 0.2s;">
+            <p class="text-muted small fw-bold text-uppercase mb-2">Completion Status</p>
+            <h1 class="display-3 fw-800 text-success mb-0">
+                {{ projects|selectattr('status', 'equalto', 'Final Approved')|list|length }}
+            </h1>
+            <small class="text-muted">Final Approved</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="glass-card p-4 text-center shadow-sm animate-fade-in" style="animation-delay: 0.3s;">
+            <p class="text-muted small fw-bold text-uppercase mb-2">Pending Final Gate</p>
+            <h1 class="display-3 fw-800 text-warning mb-0">
+                {{ projects|selectattr('status', 'equalto', 'Approved')|list|length }}
+            </h1>
+            <small class="text-muted">Awaiting HOD Signature</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="glass-card p-4 shadow-sm animate-fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Project Finalization List</h5>
+                <div class="badge bg-light text-muted border px-3 rounded-pill">Strategic Review</div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead>
+                        <tr>
+                            <th class="border-0 text-muted small fw-bold">PROJECT & TEAM</th>
+                            <th class="border-0 text-muted small fw-bold text-center">FACULTY GUIDE</th>
+                            <th class="border-0 text-muted small fw-bold text-center">LATEST STATUS</th>
+                            <th class="border-0 text-muted small fw-bold text-center">AI INTEGRITY</th>
+                            <th class="border-0 text-muted small fw-bold text-end">EXECUTION</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">{{ project.title }}</div>
+                                <small class="text-muted">{{ project.team.name }}</small>
+                            </td>
+                            <td class="text-center">
+                                {% set assignment = project.team.assignments[0] if project.team.assignments else None %}
+                                {% if assignment and assignment.faculty %}
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    {% if assignment.faculty.profile_photo %}
+                                    <img src="{{ url_for('auth.serve_profile_photo', filename=assignment.faculty.profile_photo) }}" 
+                                         alt="{{ assignment.faculty.username }}" class="rounded-circle" 
+                                         style="width: 24px; height: 24px; object-fit: cover; border: 2px solid var(--primary-light);">
+                                    {% else %}
+                                    <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center text-white fw-bold" 
+                                         style="width: 24px; height: 24px; font-size: 0.55rem;">
+                                        {{ assignment.faculty.username[:1]|upper }}
+                                    </div>
+                                    {% endif %}
+                                    <span class="fw-semibold small">{{ assignment.faculty.username }}</span>
+                                </div>
+                                {% else %}
+                                <span class="fw-semibold small text-muted">No Guide Assigned</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span
+                                    class="badge bg-{{ 'success' if project.status == 'Final Approved' else 'primary' if project.status == 'Approved' else 'secondary' }} rounded-pill px-3">
+                                    {{ project.status }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                {% set eval = project.evaluations[0] if project.evaluations else None %}
+                                <span
+                                    class="badge bg-{{ 'success' if not eval or eval.risk_level == 'ON_TRACK' else 'danger' }} rounded-pill px-3">
+                                    {{ eval.risk_level if eval else 'ON_TRACK' }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2 align-items-center">
+                                    {% if project.status == 'Approved' %}
+                                    <form action="{{ url_for('project.hod_final_approve', project_id=project.id) }}"
+                                        method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit"
+                                            class="btn btn-sm btn-success rounded-pill px-3 shadow-sm border-0">Sign &
+                                            Approve</button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{{ url_for('project.view_report', project_id=project.id) }}"
+                                        class="btn btn-sm btn-light border-0 py-2 px-3">
+                                        <i data-lucide="file-text" style="width: 16px;"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="text-muted italic small">No project data currently available for the
+                                    department.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

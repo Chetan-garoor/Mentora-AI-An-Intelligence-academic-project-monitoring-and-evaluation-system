@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row align-items-center g-5 py-5 mt-2">
+    <div class="col-lg-7 text-center text-lg-start">
+        <h1 class="display-3 fw-800 lh-1 mb-4 text-gradient">Mentora Ai: <span class="fs-5 fw-normal d-block mt-2 text-muted" style="text-transform: lowercase;">an intelligent project monitoring and evaluation system</span></h1>
+        <p class="lead text-muted mb-5">
+            Empowering students and faculty with AI-driven insights, automated GitHub tracking, and seamless 4-tier
+            collaboration. Experience the future of university project management.
+        </p>
+        <div class="d-grid gap-3 d-md-flex justify-content-md-start">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-5 shadow-lg">Get Started Now</a>
+            <a href="#features" class="btn btn-outline-secondary btn-lg px-5 border-0">Learn More</a>
+        </div>
+    </div>
+    <div class="col-10 col-sm-8 col-lg-5 mx-auto">
+        <div class="glass-card p-4 animate-fade-in shadow-lg">
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="rounded-circle bg-primary-light p-3">
+                    <i data-lucide="zap" class="text-primary"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">Real-time Analysis</h5>
+                    <small class="text-muted">AI processing active</small>
+                </div>
+            </div>
+            <div class="p-3 bg-light rounded-4 mb-3 border border-white">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small fw-semibold">Team Contribution</span>
+                    <span class="small text-primary fw-bold">92%</span>
+                </div>
+                <div class="progress" style="height: 8px; border-radius: 10px;">
+                    <div class="progress-bar" role="progressbar" style="width: 92%; background: var(--primary);"></div>
+                </div>
+            </div>
+            <div class="p-3 bg-light rounded-4 border border-white">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="small fw-semibold">Risk Assessment</span>
+                    <span class="small text-success fw-bold">LOW</span>
+                </div>
+                <div class="progress" style="height: 8px; border-radius: 10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 20%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="features" class="container py-5 mt-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-800">Why Choose Mentora AI?</h2>
+        <p class="text-muted">The ultimate ecosystem for modern university project lifecycles.</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <div class="card p-4 h-100 animate-fade-in" style="animation-delay: 0.1s;">
+                <div class="rounded-circle bg-primary-light p-3 mb-4 d-inline-block">
+                    <i data-lucide="github" class="text-primary"></i>
+                </div>
+                <h5 class="fw-bold">Automated Tracking</h5>
+                <p class="text-muted small mb-0">Deep integration with GitHub API for automatic commit and code addition
+                    analysis for every student.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 h-100 animate-fade-in" style="animation-delay: 0.2s;">
+                <div class="rounded-circle bg-success-light p-3 mb-4 d-inline-block"
+                    style="background-color: rgba(76, 201, 240, 0.1);">
+                    <i data-lucide="brain-circuit" class="text-success" style="color: #4cc9f0 !important;"></i>
+                </div>
+                <h5 class="fw-bold">AI Risk Detection</h5>
+                <p class="text-muted small mb-0">Our heuristic model automatically flags inactive members and potential
+                    project failures before they happen.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 h-100 animate-fade-in" style="animation-delay: 0.3s;">
+                <div class="rounded-circle bg-warning-light p-3 mb-4 d-inline-block"
+                    style="background-color: rgba(247, 37, 133, 0.1);">
+                    <i data-lucide="file-text" class="text-warning" style="color: #f72585 !important;"></i>
+                </div>
+                <h5 class="fw-bold">Smart Reporting</h5>
+                <p class="text-muted small mb-0">Generate professional PDF evaluation reports with detailed statistics
+                    and faculty feedback in one click.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center text-center mb-5">
+        <div class="col-lg-8 animate-fade-in">
+            <h1 class="display-5 fw-800 mb-3 text-gradient">Create Your Account</h1>
+            <p class="lead text-muted">Select your role to get started with Mentora Ai's project monitoring ecosystem.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Student Card -->
+        <div class="col-md-5 col-lg-3">
+            <a href="{{ url_for('auth.register_student') }}" class="text-decoration-none role-card-link">
+                <div class="glass-card p-4 h-100 text-center animate-fade-in role-card" style="animation-delay: 0.1s;">
+                    <div class="role-icon-wrapper bg-primary-light mb-4">
+                        <i data-lucide="graduation-cap" class="text-primary"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Student</h4>
+                    <p class="text-muted small mb-0">Submit proposals, track GitHub activity, and manage your team's
+                        Kanban board.</p>
+                    <div class="mt-4 btn btn-outline-primary btn-sm rounded-pill px-4">Register as User</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Faculty Card -->
+        <div class="col-md-5 col-lg-3">
+            <a href="{{ url_for('auth.register_staff', role='FACULTY') }}" class="text-decoration-none role-card-link">
+                <div class="glass-card p-4 h-100 text-center animate-fade-in role-card" style="animation-delay: 0.2s;">
+                    <div class="role-icon-wrapper bg-success-light mb-4">
+                        <i data-lucide="users" class="text-success"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Faculty</h4>
+                    <p class="text-muted small mb-0">Guide projects, review logbooks, and provide AI-enhanced feedback
+                        to teams.</p>
+                    <div class="mt-4 btn btn-outline-success btn-sm rounded-pill px-4">Register as Faculty</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Coordinator Card -->
+        <div class="col-md-5 col-lg-3">
+            <a href="{{ url_for('auth.register_staff', role='COORDINATOR') }}"
+                class="text-decoration-none role-card-link">
+                <div class="glass-card p-4 h-100 text-center animate-fade-in role-card" style="animation-delay: 0.3s;">
+                    <div class="role-icon-wrapper bg-warning-light mb-4">
+                        <i data-lucide="clipboard-check" class="text-warning"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">Coordinator</h4>
+                    <p class="text-muted small mb-0">Manage project assignments, assign faculty guides, and oversee
+                        department metrics.</p>
+                    <div class="mt-4 btn btn-outline-warning btn-sm rounded-pill px-4">Register as Coordinator</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- HOD Card -->
+        <div class="col-md-5 col-lg-3">
+            <a href="{{ url_for('auth.register_staff', role='HOD') }}" class="text-decoration-none role-card-link">
+                <div class="glass-card p-4 h-100 text-center animate-fade-in role-card" style="animation-delay: 0.4s;">
+                    <div class="role-icon-wrapper bg-danger-light mb-4">
+                        <i data-lucide="shield-check" class="text-danger"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark">HOD</h4>
+                    <p class="text-muted small mb-0">High-level department oversight, overall project analytics, and
+                        system administration.</p>
+                    <div class="mt-4 btn btn-outline-danger btn-sm rounded-pill px-4">Register as HOD</div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="text-center mt-5 animate-fade-in" style="animation-delay: 0.5s;">
+        <p class="text-muted">Already have an account? <a href="{{ url_for('auth.login') }}"
+                class="fw-bold text-primary text-decoration-none">Login here</a></p>
+    </div>
+</div>
+
+<style>
+    .role-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+    }
+
+    .role-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1) !important;
+        background: white !important;
+        border-color: var(--primary-light);
+    }
+
+    .role-icon-wrapper {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        transition: transform 0.3s ease;
+    }
+
+    .role-card:hover .role-icon-wrapper {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .role-icon-wrapper i {
+        width: 32px;
+        height: 32px;
+    }
+
+    .role-card-link {
+        color: inherit;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Support for background opacity for light variants if not in CSS */
+    .bg-primary-light {
+        background-color: rgba(79, 70, 229, 0.1) !important;
+    }
+
+    .bg-success-light {
+        background-color: rgba(16, 185, 129, 0.1) !important;
+    }
+
+    .bg-warning-light {
+        background-color: rgba(245, 158, 11, 0.1) !important;
+    }
+
+    .bg-danger-light {
+        background-color: rgba(239, 68, 68, 0.1) !important;
+    }
+</style>
+{% endblock %}

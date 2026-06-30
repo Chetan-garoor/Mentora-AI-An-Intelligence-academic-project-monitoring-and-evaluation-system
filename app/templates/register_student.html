@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-6">
+        <div class="glass-card p-5 mt-2 shadow-lg animate-fade-in">
+            <div class="text-center mb-5">
+                <img src="{{ url_for('static', filename='img/logo.jpeg') }}" alt="Mentora Ai Logo"
+                    style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; border: 2px solid var(--primary-light);">
+                <h3 class="fw-800">Student Registration</h3>
+                <p class="text-muted small">Join your project team and start tracking</p>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        {{ form.username.label(class="form-label") }}
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""),
+                        placeholder="John Doe") }}
+                        {% for error in form.username.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""),
+                        placeholder="john@student.com") }}
+                        {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mb-4">
+                    {{ form.registration_number.label(class="form-label") }}
+                    {{ form.registration_number(class="form-control" + (" is-invalid" if form.registration_number.errors
+                    else ""), placeholder="CS001") }}
+                    {% for error in form.registration_number.errors %}
+                    <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""),
+                        placeholder="••••••••") }}
+                        {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        {{ form.confirm_password.label(class="form-label") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors
+                        else ""), placeholder="••••••••") }}
+                        {% for error in form.confirm_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {{ form.submit(class="btn btn-primary w-100 py-3 shadow") }}
+            </form>
+            <div class="mt-4 text-center">
+                <p class="small text-muted mb-0">Already have an account? <a href="{{ url_for('auth.login') }}"
+                        class="fw-bold">Login here</a></p>
+                <p class="x-small text-muted mt-2">Not a student? <a href="{{ url_for('auth.register_select') }}"
+                        class="text-decoration-none fw-bold">Change role</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
